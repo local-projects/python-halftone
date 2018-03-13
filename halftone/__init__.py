@@ -1,16 +1,4 @@
-try:
-    import Image, ImageDraw, ImageStat
-except ImportError as e:
-
-    try:
-        import PIL.Image as Image
-        import PIL.ImageDraw as ImageDraw
-        import PIL.ImageStat as ImageStat
-    except:
-        raise
-except:
-    raise
-
+from PIL import Image, ImageDraw, ImageStat
 import os, sys
 
 """
@@ -32,6 +20,9 @@ class Halftone(object):
         """
         self.input_file = input_file
         self.save_to_path = save_to_path
+
+        # Allow any size images to be handled
+        Image.MAX_IMAGE_PIXELs = None
 
     def make(self, sample=10, scale=1, percentage=0, filename_addition='_halftoned', angles=[0,15,30,45], style='color', antialias=False):
         """
