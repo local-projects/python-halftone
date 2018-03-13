@@ -75,6 +75,7 @@ class Halftone(object):
             new = Image.merge('CMYK', dots)
 
         new.save(outfile)
+        return outfile
 
     def gcr(self, im, percentage):
         """
