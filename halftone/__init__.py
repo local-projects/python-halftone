@@ -26,11 +26,12 @@ http://stackoverflow.com/a/10575940/250962
 
 class Halftone(object):
 
-    def __init__(self, path):
+    def __init__(self, input_file=None, save_to_path=None):
         """
         path is the path to the image we want to halftone.
         """
-        self.path = path
+        self.input_file = input_file
+        self.save_to_path = save_to_path
 
     def make(self, sample=10, scale=1, percentage=0, filename_addition='_halftoned', angles=[0,15,30,45], style='color', antialias=False):
         """
@@ -46,12 +47,19 @@ class Halftone(object):
             style: 'color' or 'grayscale'.
             antialias: boolean.
         """
-        f, e = os.path.splitext(self.path)
+        path, fname = os.path.split(self.input_file)
+        raw_fname, ext = os.path.splitext(fname)
+        if self.save_to_path == path:
+            raise Exception("Path to save to must not be the same as the source path")
 
-        outfile = "%s%s%s" % (f, filename_addition, e)
+        # Halftones are CMYK which cannot be saved as PNG. Must be JPG
+        outfile = os.path.join(
+            self.save_to_path, 
+            raw_fname + ".jpg"
+        )
 
         try:
-            im = Image.open(self.path)
+            im = Image.open(self.input_file)
         except IOError:
             raise
 
@@ -85,8 +93,11 @@ class Halftone(object):
             for y in range(im.size[1]):
                 gray = min(cmyk[0][x,y], cmyk[1][x,y], cmyk[2][x,y]) * percentage / 100
                 for i in range(3):
-                    cmyk[i][x,y] = cmyk[i][x,y] - gray
-                cmyk[3][x,y] = gray
+                    # add int() here since this is an issue between pil2.x vs pil higher
+                    # See https://stackoverflow.com/questions/13225525/system-error-new-style-getargs-format-but-argument-is-not-a-tuple-when-using
+                    cmyk[i][x,y] = int(cmyk[i][x,y] - gray)
+                cmyk[3][x,y] = int(gray)
+
         return Image.merge('CMYK', cmyk_im)
 
     def halftone(self, im, cmyk, sample, scale, angles, antialias):
@@ -164,8 +175,8 @@ class Halftone(object):
 
             if antialias is True:
                 # Scale it back down to antialias the image.
-                w = (xx2 - xx1) / antialias_scale
-                h = (yy2 - yy1) / antialias_scale
+                w = round((xx2 - xx1) / antialias_scale)
+                h = round((yy2 - yy1) / antialias_scale)
                 half_tone = half_tone.resize((w, h), resample=Image.LANCZOS)
 
             dots.append(half_tone)
