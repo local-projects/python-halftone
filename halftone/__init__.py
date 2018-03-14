@@ -115,7 +115,7 @@ class Halftone(object):
 
         for channel, angle in zip(cmyk, angles):
             channel = channel.rotate(angle, expand=1)
-            size = channel.size[0] * scale, channel.size[1] * scale
+            size = round(channel.size[0] * scale), round(channel.size[1] * scale)
             half_tone = Image.new('L', size)
             draw = ImageDraw.Draw(half_tone)
 
